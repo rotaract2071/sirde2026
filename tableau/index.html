@@ -3,11 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Il mio tavolo – Congresso Nazionale Siena 2026</title>
+    <title>Il mio tavolo – S.I.R.D.E. Livorno 2026</title>
     <meta
       name="description"
-      content="Trova il tuo tavolo al Congresso Nazionale Siena 2026."
+      content="Trova il tuo tavolo al S.I.R.D.E. di Livorno, 13–15 novembre 2026."
     />
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png" />
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
+    <meta name="theme-color" content="#ffffff" />
     <link
       href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap"
       rel="stylesheet"
@@ -59,10 +62,18 @@
       }
 
       header {
-        background: var(--cranberry);
-        color: #fff;
+        background: #fff;
+        color: #1a1a2e;
         text-align: center;
-        padding: 2.25rem 1.5rem 2rem;
+        padding: 1.75rem 1.5rem 1.5rem;
+        border-bottom: 4px solid var(--cranberry);
+      }
+
+      .header-logo {
+        display: block;
+        width: min(60vw, 220px);
+        height: auto;
+        margin: 0 auto 0.75rem;
       }
 
       header h1 {
@@ -70,13 +81,14 @@
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
+        color: var(--cranberry);
         margin-bottom: 0.35rem;
       }
 
       header p {
         font-size: 0.95rem;
-        font-weight: 300;
-        opacity: 0.88;
+        font-weight: 400;
+        color: #5a5a72;
       }
 
       main {
@@ -417,7 +429,15 @@
   </head>
   <body>
     <header>
-      <h1>Congresso Nazionale Siena 2026</h1>
+      <img
+        class="header-logo"
+        src="../assets/logo-sirde-320.png"
+        srcset="../assets/logo-sirde-320.png 1x, ../assets/logo-sirde-640.png 2x"
+        width="220"
+        height="220"
+        alt="Logo S.I.R.D.E. Livorno, 13–15 novembre 2026"
+      />
+      <h1>Il tuo tavolo</h1>
       <p>Trova il tuo posto a tavola</p>
     </header>
 
@@ -527,7 +547,7 @@
     </main>
 
     <footer>
-      <p>Distretto Rotaract 2071 &mdash; Congresso Nazionale Siena 2026</p>
+      <p>Distretto Rotaract 2071 &mdash; S.I.R.D.E. Livorno 2026</p>
     </footer>
 
     <script type="module">
@@ -550,10 +570,17 @@
        * @property {Record<string, string>} source
        */
 
+      /**
+       * ID fittizio: sostituirlo con l'ID del Google Sheet del S.I.R.D.E. 2026.
+       * Finché resta questo valore l'app mostra l'avviso di configurazione;
+       * per i test si può passare `?sheetId=...` nella query string.
+       */
+      const PLACEHOLDER_SPREADSHEET_ID = "ID_FOGLIO_SIRDE_2026";
+
       /** @type {SheetsConfig} */
       const DEFAULT_SHEETS_CONFIG = {
         apiKey: "AIzaSyDIhVpU699cqvGJHdLzMKLvqCkLHS9qrr8",
-        spreadsheetId: "13xXTsIBdaxMiSXysw-9TE4vk2HsCh3bjv0yh2ghf6OU",
+        spreadsheetId: PLACEHOLDER_SPREADSHEET_ID,
         sheetName: "Tableau",
         range: "",
       };
@@ -622,7 +649,12 @@
        * @returns {boolean}
        */
       function hasSheetsConfig(config) {
-        return Boolean(config.apiKey && config.spreadsheetId && (config.range || config.sheetName));
+        return Boolean(
+          config.apiKey &&
+            config.spreadsheetId &&
+            config.spreadsheetId !== PLACEHOLDER_SPREADSHEET_ID &&
+            (config.range || config.sheetName),
+        );
       }
 
       /**

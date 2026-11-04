@@ -1,1 +1,1 @@
-Repository per tool utili per il congresso nazionale 2026 di Siena
+Repository per tool utili per il S.I.R.D.E. 2026 di Livorno (13–15 novembre 2026)

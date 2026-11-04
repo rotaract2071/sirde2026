@@ -1,5 +1,5 @@
 # Context
-L'app tableau servirà agli invitati dell'evento Congresso Nazionale Siena 2026 ad individuare il proprio tavolo.
+L'app tableau servirà agli invitati dell'evento S.I.R.D.E. Livorno 2026 ad individuare il proprio tavolo.
 User story:
 - l'invitato inquadra col telefono un QR code, che rimanda all'app
 - l'app si apre e chiede all'utente di inserire nome e cognome in una barra di ricerca

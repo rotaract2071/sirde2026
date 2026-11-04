@@ -1,5 +1,5 @@
 # Context
-La pagina sponsor servirà agli invitati dell'evento Congresso Nazionale Siena 2026 a visualizzare la lista dei loghi degli sponsor che hanno supportato l'evento.
+La pagina sponsor servirà agli invitati dell'evento S.I.R.D.E. Livorno 2026 a visualizzare la lista dei loghi degli sponsor che hanno supportato l'evento.
 
 Gli sponsor sono suddivisi in tre tier:
 - Tier A: massima priorità
