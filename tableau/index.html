@@ -571,16 +571,15 @@
        */
 
       /**
-       * ID fittizio: sostituirlo con l'ID del Google Sheet del S.I.R.D.E. 2026.
-       * Finché resta questo valore l'app mostra l'avviso di configurazione;
-       * per i test si può passare `?sheetId=...` nella query string.
+       * Valore segnaposto: se usato come ID, l'app mostra l'avviso di configurazione.
+       * Per i test si può passare `?sheetId=...` nella query string.
        */
       const PLACEHOLDER_SPREADSHEET_ID = "ID_FOGLIO_SIRDE_2026";
 
       /** @type {SheetsConfig} */
       const DEFAULT_SHEETS_CONFIG = {
         apiKey: "AIzaSyDIhVpU699cqvGJHdLzMKLvqCkLHS9qrr8",
-        spreadsheetId: PLACEHOLDER_SPREADSHEET_ID,
+        spreadsheetId: "1d5QdhRH4opQzslxWUf0W2YGuXzl43MGeGbuK6J1oahE",
         sheetName: "Tableau",
         range: "",
       };
