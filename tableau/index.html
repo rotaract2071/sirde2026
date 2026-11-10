@@ -552,11 +552,13 @@
 
     <script type="module">
       /**
+       * Il foglio viene letto tramite l'esportazione CSV pubblica di Google Sheets:
+       * non serve una API key, basta che il foglio sia condiviso come
+       * "Chiunque abbia il link → Visualizzatore".
+       *
        * @typedef {Object} SheetsConfig
-       * @property {string} apiKey
        * @property {string} spreadsheetId
-       * @property {string} sheetName
-       * @property {string} range
+       * @property {string} gid ID numerico della linguetta (il `gid=` nell'URL del foglio)
        */
 
       /**
@@ -578,10 +580,8 @@
 
       /** @type {SheetsConfig} */
       const DEFAULT_SHEETS_CONFIG = {
-        apiKey: "AIzaSyDIhVpU699cqvGJHdLzMKLvqCkLHS9qrr8",
         spreadsheetId: "1yzY5VY81VwwnW9BpkAjhxaA9df7xJ9N51saGV4mSbfU",
-        sheetName: "Tableau",
-        range: "",
+        gid: "0",
       };
 
       /** @type {Guest[]} */
@@ -635,11 +635,9 @@
         const params = new URLSearchParams(window.location.search);
 
         return {
-          apiKey: params.get("apiKey")?.trim() ?? DEFAULT_SHEETS_CONFIG.apiKey,
           spreadsheetId:
             params.get("sheetId")?.trim() ?? DEFAULT_SHEETS_CONFIG.spreadsheetId,
-          sheetName: params.get("sheet")?.trim() ?? DEFAULT_SHEETS_CONFIG.sheetName,
-          range: params.get("range")?.trim() ?? DEFAULT_SHEETS_CONFIG.range,
+          gid: params.get("gid")?.trim() ?? DEFAULT_SHEETS_CONFIG.gid,
         };
       }
 
@@ -649,10 +647,9 @@
        */
       function hasSheetsConfig(config) {
         return Boolean(
-          config.apiKey &&
-            config.spreadsheetId &&
+          config.spreadsheetId &&
             config.spreadsheetId !== PLACEHOLDER_SPREADSHEET_ID &&
-            (config.range || config.sheetName),
+            config.gid,
         );
       }
 
@@ -661,25 +658,86 @@
        * @returns {Promise<string[][]>}
        */
       async function fetchSheetValues(config) {
-        const range = config.range || config.sheetName;
-        const encodedRange = encodeURIComponent(range);
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${config.spreadsheetId}/values/${encodedRange}?key=${config.apiKey}`;
-        const response = await fetch(url);
+        const sheetId = encodeURIComponent(config.spreadsheetId);
+        const gid = encodeURIComponent(config.gid);
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+        const sharingHint =
+          "Verifica che il foglio sia condiviso come “Chiunque abbia il link → Visualizzatore” e che ID e gid siano corretti.";
+
+        /** @type {Response} */
+        let response;
+        try {
+          response = await fetch(url, { cache: "no-store" });
+        } catch {
+          // Un foglio non pubblico reindirizza alla pagina di login Google, bloccata dal CORS.
+          throw new Error(`Il foglio non è accessibile pubblicamente. ${sharingHint}`);
+        }
 
         if (!response.ok) {
-          throw new Error(
-            `Google Sheets API request failed with status ${response.status} ${response.statusText}. Verifica API key, permessi del foglio e range richiesto.`,
-          );
+          throw new Error(`Lettura del foglio non riuscita (HTTP ${response.status}). ${sharingHint}`);
         }
 
-        /** @type {{ values?: string[][], error?: { message?: string } }} */
-        const data = await response.json();
-
-        if (data.error?.message) {
-          throw new Error(data.error.message);
+        const contentType = response.headers.get("content-type") ?? "";
+        if (contentType.includes("text/html")) {
+          throw new Error(`Google ha restituito una pagina invece dei dati. ${sharingHint}`);
         }
 
-        return Array.isArray(data.values) ? data.values : [];
+        return parseCsv(await response.text());
+      }
+
+      /**
+       * Parser CSV (RFC 4180): gestisce virgolette, virgole e a capo nei campi.
+       *
+       * @param {string} text
+       * @returns {string[][]}
+       */
+      function parseCsv(text) {
+        /** @type {string[][]} */
+        const rows = [];
+        /** @type {string[]} */
+        let row = [];
+        let field = "";
+        let inQuotes = false;
+
+        for (let index = 0; index < text.length; index += 1) {
+          const char = text[index];
+
+          if (inQuotes) {
+            if (char === '"' && text[index + 1] === '"') {
+              field += '"';
+              index += 1;
+            } else if (char === '"') {
+              inQuotes = false;
+            } else {
+              field += char;
+            }
+            continue;
+          }
+
+          if (char === '"') {
+            inQuotes = true;
+          } else if (char === ",") {
+            row.push(field);
+            field = "";
+          } else if (char === "\n" || char === "\r") {
+            if (char === "\r" && text[index + 1] === "\n") {
+              index += 1;
+            }
+            row.push(field);
+            rows.push(row);
+            row = [];
+            field = "";
+          } else {
+            field += char;
+          }
+        }
+
+        if (field !== "" || row.length > 0) {
+          row.push(field);
+          rows.push(row);
+        }
+
+        return rows.filter((cells) => cells.some((cell) => cell.trim() !== ""));
       }
 
       /**
@@ -786,17 +844,13 @@
         title.textContent = "Configurazione Google Sheets mancante";
         copy.replaceChildren(
           "Inserisci nel file HTML oppure nella query string i valori per ",
-          createCodeElement("apiKey"),
-          ", ",
           createCodeElement("sheetId"),
-          " e ",
-          createCodeElement("sheet"),
-          " o ",
-          createCodeElement("range"),
+          " e, se la linguetta non è la prima, ",
+          createCodeElement("gid"),
           ".",
         );
-        examples[0].textContent = "?apiKey=...&sheetId=...&sheet=Invitati";
-        examples[1].textContent = "?apiKey=...&sheetId=...&range=Invitati!A:Z";
+        examples[0].textContent = "?sheetId=...";
+        examples[1].textContent = "?sheetId=...&gid=123456789";
         resultsSection.replaceChildren(notice);
       }
 
